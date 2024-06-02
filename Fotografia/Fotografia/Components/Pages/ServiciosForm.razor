@@ -1,0 +1,55 @@
+﻿@page "/servicios/nuevo"
+@page "/servicios/editar/{Id:int}"
+@rendermode InteractiveServer
+@inject NavigationManager _navigator;
+@inject IRepositorioServicios _repositorioServicios;
+<h2>@_mensaje Servicio</h2>
+<EditForm Model="_servicio" FormName="frmServicio" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="txtNombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="txtNombre" class="form-control" @bind-Value="_servicio.Nombre" />
+            <ValidationMessage For="()=>_servicio.Nombre" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Servicio? _servicio = new();
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            _servicio = await _repositorioServicios.Get(Id);
+            _mensaje = "Modificar";
+        }
+        else
+        {
+            _mensaje = "Nuevo";
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id > 0)
+        {
+            await _repositorioServicios.Update(Id, _servicio!);
+        }
+        else
+        {
+            await _repositorioServicios.Add(_servicio!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigator.NavigateTo("/servicios-y-opciones");
+    }
+}

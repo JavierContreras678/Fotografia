@@ -1,0 +1,82 @@
+﻿@page "/opciones/editar/{Id:int}"
+@page "/opciones/nueva"
+@rendermode InteractiveServer
+@inject NavigationManager _navigation
+@inject IRepositorioOpciones _repositorioOpciones
+@inject IRepositorioServicios _repositorioServicios
+
+<h2>@_mensaje Opcion</h2>
+<EditForm Model="_opcion" FormName="frmOpcion" OnValidSubmit="GuardarOpcion">
+    <DataAnnotationsValidator />
+    <div class="row mb-3">
+        <label for="nombre" class="col-2 col-form-label">Nombre</label>
+        <div class="col-10">
+            <InputText id="nombre" class="form-control" @bind-Value="_opcion.Nombre" />
+            <ValidationMessage For="()=>_opcion.Nombre" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="precio" class="col-2 col-form-label">Precio</label>
+        <div class="col-10">
+            <InputNumber id="precio" class="form-control" @bind-Value="_opcion.Precio" />
+            <ValidationMessage For="()=>_opcion.Precio" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="servicioId" class="col-2 col-form-label">Servicio</label>
+        <div class="col-10">
+            <InputSelect id="servicioId" class="form-control" @bind-Value="_opcion.ServicioId">
+                <option value="">Seleccione un servicio</option>
+                @foreach (var servicio in _servicios)
+                {
+                    <option value="@servicio.Id">@servicio.Nombre</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="()=>_opcion.ServicioId" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <button class="btn btn-danger ms-3" @onclick="Cancelar" @onclick:preventDefault>Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _mensaje = "";
+    private Opcion? _opcion = new();
+    private List<Servicio> _servicios = new();
+    protected override async Task OnInitializedAsync()
+    {
+        _servicios = await _repositorioServicios.GetAll();
+        
+        if (Id > 0)
+        {
+            _opcion = await _repositorioOpciones.Get(Id);
+            _mensaje = "Modificar";
+
+        }
+        else
+        {
+         _mensaje = "Nueva";
+
+        }
+    }
+
+    private async void GuardarOpcion()
+    {
+        if (Id > 0)
+        {
+            await _repositorioOpciones.Update(Id, _opcion!);
+        }
+        else
+        {
+            await _repositorioOpciones.Add(_opcion!);
+        }
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _navigation.NavigateTo("/servicios-y-opciones");
+    }
+}
